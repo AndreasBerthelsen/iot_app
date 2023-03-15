@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -53,7 +54,7 @@ void disconnect(){
     _client.disconnect();
 }
 
-  void callback()
+  void listen(void Function(Uint8List) newImage)
   {
     print("-- YOU GOT A MESSAGE NOTIFICATION --");
     _client.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
@@ -65,7 +66,7 @@ void disconnect(){
       print("HERE------------------------------------------");
       print(pt);
       final payload = base64Decode(pt);
-      IntruderImageStream.addImage(payload);
+      newImage(payload);
       // lastMessage = payload;
       // print("-- YOU GOT A MESSAGE: " + lastMessage + " --");
     });
