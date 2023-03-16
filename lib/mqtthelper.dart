@@ -1,81 +1,52 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
-import 'package:flutter/cupertino.dart';
+
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'image_stream.dart';
 
+typedef MqttUpdates = List<MqttReceivedMessage<MqttMessage>>;
 
-Future<void> subscribe(MqttConnection con) async{
-  if(await con.connect()){
-    con.subscribe("Picture");
-  }
-}
-Future<void> unsubscribe(MqttConnection con) async{
-  if(await con.connect()){
-    con.unsubscribe("Picture");
-  }
-}
+class MqttSubscriber {
+  final MqttServerClient client;
+  final String topic;
+  final void Function(AppEvent event) onEvent;
+  StreamSubscription<MqttUpdates>? _listenSub;
 
-class MqttConnection {
-  final int _port;
-  final String _token;
-  final MqttServerClient _client = MqttServerClient("mqtt.flespi.io","");
-  String lastMessage ="";
-
-  MqttConnection(this._port, this._token);
-
-  Future<bool> connect() async {
-    _client.port = _port;
-    _client.logging(on: true);
-    _client.keepAlivePeriod = 30;
-
-    final MqttConnectMessage connMess = MqttConnectMessage()
-        .withClientIdentifier('myClient')
-        .withWillTopic('willtopic')
-        .withWillMessage('My client disconnected')
-        .withWillQos(MqttQos.atLeastOnce)
-        .authenticateAs(_token, "")
-        .startClean();
-
-    _client.connectionMessage = connMess;
-
-    try {
-      await _client.connect();
-      return true;
-    } catch (e) {
-      print('Connection failed - $e');
-      _client.disconnect();
-      return false;
-    }
+  MqttSubscriber({
+    required this.client,
+    required this.topic,
+    required this.onEvent,
+  }) {
+    client.connectionMessage =
+        MqttConnectMessage().startClean().withWillQos(MqttQos.atLeastOnce);
+    client
+      ..logging(on: true)
+      ..keepAlivePeriod = 60
+      ..onConnected = (() => onEvent(Connected()))
+      ..onDisconnected = (() => onEvent(Disconnected()))
+      ..onSubscribed = ((topic) => onEvent(Subscribed(topic)))
+      ..pongCallback = (() => onEvent(Pong()));
   }
 
-void disconnect(){
-    _client.disconnect();
-}
-
-  void listen(void Function(Uint8List) newImage)
-  {
-    print("-- YOU GOT A MESSAGE NOTIFICATION --");
-    _client.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
-      print("HERE!!!!!!!!!!!!!!!!!!!!");
-      print(c);
-      final recMess = c![0].payload as MqttPublishMessage;
-      final pt =
-      MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-      print("HERE------------------------------------------");
-      print(pt);
-      final payload = base64Decode(pt);
-      newImage(payload);
-      // lastMessage = payload;
-      // print("-- YOU GOT A MESSAGE: " + lastMessage + " --");
+  connect() async {
+    await client.connect("frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq", "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq");
+    client.subscribe(topic, MqttQos.atLeastOnce);
+    _listenSub = client.updates!.listen((MqttUpdates? updates) {
+      print('Listen was called!');
+      for (final update in updates!) {
+        final message = update.payload as MqttPublishMessage;
+        final pt =
+        MqttPublishPayload.bytesToStringAsString(message.payload.message);
+        final payload = base64Decode(pt);
+        onEvent(ImageTheif(payload));
+      }
     });
   }
-void subscribe(String topic){
-    _client.subscribe(topic, MqttQos.atLeastOnce);
-}
 
-void unsubscribe(String topic){
- _client.unsubscribe(topic);
-}
+  void disconnect() {
+    client.unsubscribe(topic);
+    // _listenSub?.cancel();
+    client.disconnect();
+  }
 }
