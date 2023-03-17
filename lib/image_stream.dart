@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:mqtt_client/mqtt_server_client.dart';
-
 import 'mqtthelper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,17 +29,17 @@ class AppState {
 
   factory AppState.initial({int maxLength = 50}) {
     return AppState(
-      active: false,
-      status: Status.disconnected,
+      active: true,
+      status: Status.connected,
       images: [],
       maxLength: maxLength,
     );
   }
 
-  copyWith({Status? status, bool? activated, Uint8List? image}) {
+  copyWith({Status? status, bool? active, Uint8List? image}) {
     return AppState(
         status: status ?? this.status,
-        active: activated ?? this.active,
+        active: active ?? this.active,
         images:
         image == null ? images : [image, ...images.take(maxLength)],
         maxLength: maxLength);
@@ -93,11 +92,11 @@ class MqttBloc extends Bloc<AppEvent, AppState> {
     on<Active>((event, emit) {
       if (event.active) {
         emit(state.copyWith(
-            status: Status.connecting, activated: event.active));
+            status: Status.connecting, active: event.active));
         _subscriber.connect();
       } else {
         emit(state.copyWith(
-            status: Status.disconnecting, activated: event.active));
+            status: Status.disconnecting, active: event.active));
         _subscriber.disconnect();
       }
     });

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'image_stream.dart';
@@ -19,7 +18,9 @@ class MqttSubscriber {
     required this.onEvent,
   }) {
     client.connectionMessage =
-        MqttConnectMessage().startClean().withWillQos(MqttQos.atLeastOnce);
+        MqttConnectMessage().startClean().withWillQos(MqttQos.atLeastOnce).authenticateAs(
+            "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq",
+            "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq");
     client
       ..logging(on: true)
       ..keepAlivePeriod = 60
@@ -30,7 +31,9 @@ class MqttSubscriber {
   }
 
   connect() async {
-    await client.connect("frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq", "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq");
+    await client.connect(
+        "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq",
+        "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq");
     client.subscribe(topic, MqttQos.atLeastOnce);
     _listenSub = client.updates!.listen((MqttUpdates? updates) {
       print('Listen was called!');
