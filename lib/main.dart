@@ -36,7 +36,7 @@ class HomeApp extends StatelessWidget {
           create: (context) => MqttBloc(
             server: 'mqtt.flespi.io',
             clientIdentifier:
-                'mqtt-board-panel-54245eb8',
+                '',
             port: 1883,
           ),
           child: ImageWidget(),

@@ -18,9 +18,7 @@ class MqttSubscriber {
     required this.onEvent,
   }) {
     client.connectionMessage =
-        MqttConnectMessage().startClean().withWillQos(MqttQos.atLeastOnce).authenticateAs(
-            "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq",
-            "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq");
+        MqttConnectMessage().startClean().withWillQos(MqttQos.atLeastOnce).withClientIdentifier("");
     client
       ..logging(on: true)
       ..keepAlivePeriod = 60
