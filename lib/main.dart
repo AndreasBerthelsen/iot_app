@@ -8,8 +8,10 @@ import 'dart:typed_data';
 
 var mqtt = MqttConnection(1883,
     "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq");
+
 void main() {
   runApp(HomeApp());
+  mqtt.connect();
 }
 
 class HomeApp extends StatefulWidget {
@@ -21,25 +23,18 @@ class HomeApp extends StatefulWidget {
 
 class _HomeAppState extends State<HomeApp> {
   List<Uint8List> pictureList = [];
-  bool isTurned = true;
   StreamSubscription<Uint8List>? _subscription;
 
-  toggleStream() {
-
+  @override
+  void initState() {
+    // TODO: implement initState
+    mqtt.callback();
     _subscription = IntruderImageStream.getStream().listen((event) {
       pictureList.add(event);
-      setState(() {
-        if(isTurned == true){
-          subscribe(mqtt);
-          mqtt.callback();
-        }
-        else{
-          unsubscribe(mqtt);
-          mqtt.callback();
-        }
-
-      });
+      setState(() {});
     });
+    print("LOOK HERE MAN LOOK" + pictureList.length.toString());
+    super.initState();
   }
 
   @override
@@ -54,7 +49,7 @@ class _HomeAppState extends State<HomeApp> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              ColorChangingButton(start: () {isTurned = true;}, stop: () { isTurned = false; },),
+              ColorChangingButton(),
               Text(
                 "On/Off",
                 style: TextStyle(fontSize: 35),
@@ -90,9 +85,7 @@ class ColorChangingButton extends StatefulWidget {
   @override
   _ColorChangingButtonState createState() => _ColorChangingButtonState();
 
-  VoidCallback start;
-  VoidCallback stop;
-  ColorChangingButton({required this.start, required this.stop});
+  ColorChangingButton();
 }
 
 class _ColorChangingButtonState extends State<ColorChangingButton> {
@@ -104,9 +97,11 @@ class _ColorChangingButtonState extends State<ColorChangingButton> {
       if (_buttonColor == Colors.red) {
         _buttonColor = Colors.green;
         _iconColor = Colors.white;
+        mqtt.subscribe("Picture");
       } else {
         _buttonColor = Colors.red;
         _iconColor = Colors.black54;
+        mqtt.unsubscribe("Picture");
       }
     });
   }
@@ -119,7 +114,6 @@ class _ColorChangingButtonState extends State<ColorChangingButton> {
         onPressed: () {
           _changeColor();
          setState(() {
-
          });
         },
         style: ElevatedButton.styleFrom(

@@ -63,7 +63,6 @@ void disconnect(){
       final pt =
       MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
       print("HERE------------------------------------------");
-      print(pt);
       final payload = base64Decode(pt);
       IntruderImageStream.addImage(payload);
       // lastMessage = payload;
