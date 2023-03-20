@@ -7,7 +7,7 @@ import 'mqtthelper.dart';
 import 'dart:typed_data';
 
 var mqtt = MqttConnection(1883,
-    "frFALK2MS8awiSXcQRAVaLEFoXIUQFBTX6kwGa6m96GfNuir9Gc8hEDtr9d5FFNq");
+    "API Key");
 
 void main() {
   runApp(HomeApp());
